@@ -59,7 +59,7 @@ export const t: Translations = {
   loading: { ru: 'Загрузка...', tk: 'Ýüklenýär...', en: 'Loading...' },
   error: { ru: 'Ошибка загрузки', tk: 'Ýükleme ýalňyşlygy', en: 'Loading error' },
   retry: { ru: 'Попробовать снова', tk: 'Täzeden synanyş', en: 'Retry' },
-  manTenge: { ru: '₸', tk: '₸', en: '₸' },
+  manTenge: { ru: 'TMT', tk: 'TMT', en: 'TMT' },
   items: { ru: 'позиций', tk: 'haryt', en: 'items' },
   connecting: { ru: 'Подключение...', tk: 'Birikýär...', en: 'Connecting...' },
   connected: { ru: 'Онлайн', tk: 'Onlaýn', en: 'Online' },

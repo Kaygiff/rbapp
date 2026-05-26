@@ -106,7 +106,7 @@ function MenuCard({ item, qty, onAdd, lang }: { item: MenuItem; qty: number; onA
         <div className="card-name">{item.name}</div>
         {item.description && <div className="card-desc">{item.description}</div>}
         <div className="card-footer">
-          <span className="card-price">{parseFloat(item.price).toLocaleString()} ₸</span>
+          <span className="card-price">{parseFloat(item.price).toLocaleString()} TMT</span>
           {item.available ? (
             <button className={`card-add ${qty > 0 ? 'in-cart' : ''}`} onClick={onAdd}>
               {qty > 0 ? (

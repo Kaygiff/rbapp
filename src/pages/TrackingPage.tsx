@@ -109,12 +109,12 @@ export default function TrackingPage() {
             {order.items.map(item => (
               <div key={item.id} className="summary-row">
                 <span>{item.name} × {item.quantity}</span>
-                <span>{(parseFloat(item.price) * item.quantity).toLocaleString()} ₸</span>
+                <span>{(parseFloat(item.price) * item.quantity).toLocaleString()} TMT</span>
               </div>
             ))}
             <div className="summary-total">
               <span>{tr('total', lang)}</span>
-              <span>{parseFloat(order.total).toLocaleString()} ₸</span>
+              <span>{parseFloat(order.total).toLocaleString()} TMT</span>
             </div>
           </div>
 

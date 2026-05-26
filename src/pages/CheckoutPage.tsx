@@ -1,21 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, ChevronLeft } from 'lucide-react'
 import { createOrder } from '../api'
 import { useCartStore, useLangStore } from '../store'
 import { tr } from '../i18n'
-import type { OrderType } from '../types'
 
 export default function CheckoutPage() {
   const { lang } = useLangStore()
   const { items, totalPrice, clearCart } = useCartStore()
   const navigate = useNavigate()
 
-  const [type, setType] = useState<OrderType>('DINE_IN')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [table, setTable] = useState('')
   const [address, setAddress] = useState('')
   const [comment, setComment] = useState('')
   const [errors, setErrors] = useState<Record<string, boolean>>({})
@@ -33,8 +30,7 @@ export default function CheckoutPage() {
     const e: Record<string, boolean> = {}
     if (!name.trim()) e.name = true
     if (!phone.trim()) e.phone = true
-    if (type === 'DINE_IN' && !table.trim()) e.table = true
-    if (type === 'DELIVERY' && !address.trim()) e.address = true
+    if (!address.trim()) e.address = true
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -42,11 +38,10 @@ export default function CheckoutPage() {
   function submit() {
     if (!validate()) return
     mutation.mutate({
-      type,
+      type: 'DELIVERY',
       customerName: name.trim(),
       customerPhone: phone.trim(),
-      tableNumber: type === 'DINE_IN' ? table.trim() : undefined,
-      address: type === 'DELIVERY' ? address.trim() : undefined,
+      address: address.trim(),
       comment: comment.trim() || undefined,
       items: items.map(i => ({ menuItemId: i.menuItem.id, quantity: i.quantity })),
     })
@@ -65,28 +60,11 @@ export default function CheckoutPage() {
 
   return (
     <div className="page">
+      <button className="back-btn" onClick={() => navigate('/cart')}>
+        <ChevronLeft size={18} /> {tr('cart', lang)}
+      </button>
+
       <div className="checkout-form">
-
-        {/* Type selector */}
-        <div className="form-group">
-          <label className="form-label">{tr('orderType', lang)}</label>
-          <div className="type-toggle">
-            <button
-              className={`type-btn ${type === 'DINE_IN' ? 'active' : ''}`}
-              onClick={() => setType('DINE_IN')}
-            >
-              🍽 {tr('dineIn', lang)}
-            </button>
-            <button
-              className={`type-btn ${type === 'DELIVERY' ? 'active' : ''}`}
-              onClick={() => setType('DELIVERY')}
-            >
-              🛵 {tr('delivery', lang)}
-            </button>
-          </div>
-        </div>
-
-        {/* Name */}
         <div className="form-group">
           <label className="form-label">{tr('yourName', lang)}</label>
           <input
@@ -98,7 +76,6 @@ export default function CheckoutPage() {
           {errors.name && <span className="field-error">{tr('required', lang)}</span>}
         </div>
 
-        {/* Phone */}
         <div className="form-group">
           <label className="form-label">{tr('yourPhone', lang)}</label>
           <input
@@ -111,32 +88,17 @@ export default function CheckoutPage() {
           {errors.phone && <span className="field-error">{tr('required', lang)}</span>}
         </div>
 
-        {/* Table or Address */}
-        {type === 'DINE_IN' ? (
-          <div className="form-group">
-            <label className="form-label">{tr('tableNumber', lang)}</label>
-            <input
-              className={`form-input ${errors.table ? 'input-error' : ''}`}
-              value={table}
-              onChange={e => setTable(e.target.value)}
-              placeholder="1, 2, 3..."
-            />
-            {errors.table && <span className="field-error">{tr('required', lang)}</span>}
-          </div>
-        ) : (
-          <div className="form-group">
-            <label className="form-label">{tr('address', lang)}</label>
-            <input
-              className={`form-input ${errors.address ? 'input-error' : ''}`}
-              value={address}
-              onChange={e => setAddress(e.target.value)}
-              placeholder={tr('address', lang)}
-            />
-            {errors.address && <span className="field-error">{tr('required', lang)}</span>}
-          </div>
-        )}
+        <div className="form-group">
+          <label className="form-label">{tr('address', lang)}</label>
+          <input
+            className={`form-input ${errors.address ? 'input-error' : ''}`}
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            placeholder={tr('address', lang)}
+          />
+          {errors.address && <span className="field-error">{tr('required', lang)}</span>}
+        </div>
 
-        {/* Comment */}
         <div className="form-group">
           <label className="form-label">{tr('comment', lang)}</label>
           <textarea
@@ -148,17 +110,16 @@ export default function CheckoutPage() {
           />
         </div>
 
-        {/* Order summary */}
         <div className="order-summary">
           {items.map(({ menuItem, quantity }) => (
             <div key={menuItem.id} className="summary-row">
               <span className="summary-name">{menuItem.name} × {quantity}</span>
-              <span className="summary-price">{(parseFloat(menuItem.price) * quantity).toLocaleString()} ₸</span>
+              <span className="summary-price">{(parseFloat(menuItem.price) * quantity).toLocaleString()} TMT</span>
             </div>
           ))}
           <div className="summary-total">
             <span>{tr('total', lang)}</span>
-            <span>{totalPrice().toLocaleString()} ₸</span>
+            <span>{totalPrice().toLocaleString()} TMT</span>
           </div>
         </div>
 
@@ -166,11 +127,7 @@ export default function CheckoutPage() {
           <p className="field-error text-center">{(mutation.error as Error).message}</p>
         )}
 
-        <button
-          className="btn-primary btn-lg"
-          onClick={submit}
-          disabled={mutation.isPending}
-        >
+        <button className="btn-primary btn-lg" onClick={submit} disabled={mutation.isPending}>
           {mutation.isPending ? tr('loading', lang) : tr('placeOrder', lang)}
         </button>
       </div>

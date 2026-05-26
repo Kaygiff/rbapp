@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { UtensilsCrossed, ShoppingBag, ClipboardList, MapPin } from 'lucide-react'
+import { UtensilsCrossed, ShoppingBag, MapPin } from 'lucide-react'
 import { useCartStore, useLangStore } from '../store'
 import { tr } from '../i18n'
 
@@ -12,7 +12,6 @@ export default function BottomNav() {
   const tabs = [
     { path: '/', icon: UtensilsCrossed, label: tr('menu', lang) },
     { path: '/cart', icon: ShoppingBag, label: tr('cart', lang), badge: totalItems },
-    { path: '/checkout', icon: ClipboardList, label: tr('order', lang) },
     { path: '/tracking', icon: MapPin, label: tr('tracking', lang) },
   ]
 
@@ -21,7 +20,7 @@ export default function BottomNav() {
       {tabs.map(({ path, icon: Icon, label, badge }) => (
         <button
           key={path}
-          className={`nav-tab ${pathname === path ? 'active' : ''}`}
+          className={`nav-tab ${pathname === path || (path === '/cart' && pathname === '/checkout') ? 'active' : ''}`}
           onClick={() => navigate(path)}
         >
           <div className="nav-icon-wrap">

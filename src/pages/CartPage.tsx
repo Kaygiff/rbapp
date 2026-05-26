@@ -27,7 +27,7 @@ export default function CartPage() {
             )}
             <div className="cart-item-body">
               <div className="cart-item-name">{menuItem.name}</div>
-              <div className="cart-item-price">{(parseFloat(menuItem.price) * quantity).toLocaleString()} ₸</div>
+              <div className="cart-item-price">{(parseFloat(menuItem.price) * quantity).toLocaleString()} TMT</div>
             </div>
             <div className="qty-controls">
               <button className="qty-btn" onClick={() => updateQty(menuItem.id, quantity - 1)}>
@@ -48,7 +48,7 @@ export default function CartPage() {
       <div className="cart-footer">
         <div className="total-row">
           <span className="total-label">{tr('total', lang)}</span>
-          <span className="total-amount">{totalPrice().toLocaleString()} ₸</span>
+          <span className="total-amount">{totalPrice().toLocaleString()} TMT</span>
         </div>
         <button className="btn-primary btn-lg" onClick={() => navigate('/checkout')}>
           {tr('checkout', lang)}
