@@ -97,11 +97,26 @@ export default function MenuPage() {
 function MenuCard({ item, qty, onAdd, lang }: { item: MenuItem; qty: number; onAdd: () => void; lang: any }) {
   return (
     <div className={`menu-card ${!item.available ? 'unavailable' : ''}`}>
-      {item.imageUrl && (
-        <div className="card-img-wrap">
-          <img src={item.imageUrl} alt={item.name} className="card-img" loading="lazy" />
+      <div className="card-img-wrap">
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="card-img"
+            loading="lazy"
+            crossOrigin="anonymous"
+            onError={(e) => {
+              const target = e.currentTarget
+              target.style.display = 'none'
+              const placeholder = target.nextElementSibling as HTMLElement
+              if (placeholder) placeholder.style.display = 'flex'
+            }}
+          />
+        ) : null}
+        <div className="card-img-placeholder" style={{ display: item.imageUrl ? 'none' : 'flex' }}>
+          🍽️
         </div>
-      )}
+      </div>
       <div className="card-body">
         <div className="card-name">{item.name}</div>
         {item.description && <div className="card-desc">{item.description}</div>}
