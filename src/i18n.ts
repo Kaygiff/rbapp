@@ -69,3 +69,31 @@ export const t: Translations = {
 export function tr(key: string, lang: Lang): string {
   return t[key]?.[lang] ?? key
 }
+
+// Auth & Profile additions
+const extra: Translations = {
+  login: { ru: 'Войти', tk: 'Gir', en: 'Login' },
+  register: { ru: 'Регистрация', tk: 'Hasap aç', en: 'Register' },
+  profile: { ru: 'Профиль', tk: 'Profil', en: 'Profile' },
+  firstName: { ru: 'Имя', tk: 'Ady', en: 'First name' },
+  lastName: { ru: 'Фамилия', tk: 'Familiýasy', en: 'Last name' },
+  password: { ru: 'Пароль', tk: 'Açar söz', en: 'Password' },
+  passwordMin: { ru: 'Минимум 6 символов', tk: 'Iň az 6 nyşan', en: 'Minimum 6 characters' },
+  balance: { ru: 'Баланс', tk: 'Balans', en: 'Balance' },
+  balanceSub: { ru: 'Пополняется через промокоды', tk: 'Promo kodlar arkaly doldurylýar', en: 'Topped up via promo codes' },
+  myOrders: { ru: 'Мои заказы', tk: 'Meniň sargytlarym', en: 'My orders' },
+  myAddresses: { ru: 'Мои адреса', tk: 'Meniň salgylarym', en: 'My addresses' },
+  language: { ru: 'Язык', tk: 'Dil', en: 'Language' },
+  callOperator: { ru: 'Звонок оператору', tk: 'Operatora jaň et', en: 'Call operator' },
+  aboutUs: { ru: 'О нас', tk: 'Biz hakda', en: 'About us' },
+  logout: { ru: 'Выйти', tk: 'Çyk', en: 'Log out' },
+  save: { ru: 'Сохранить', tk: 'Sakla', en: 'Save' },
+  saved: { ru: 'Сохранено', tk: 'Saklandy', en: 'Saved' },
+  noOrders: { ru: 'Заказов пока нет', tk: 'Heniz sargyt ýok', en: 'No orders yet' },
+  noAddresses: { ru: 'Адресов пока нет', tk: 'Heniz salgyt ýok', en: 'No addresses yet' },
+  label_home: { ru: 'Дом', tk: 'Öý', en: 'Home' },
+  label_work: { ru: 'Работа', tk: 'Iş', en: 'Work' },
+  label_other: { ru: 'Другое', tk: 'Başga', en: 'Other' },
+}
+
+Object.assign(t, extra)

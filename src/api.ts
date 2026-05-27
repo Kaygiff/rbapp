@@ -35,3 +35,72 @@ export async function createOrder(payload: CreateOrderPayload) {
   }
   return res.json()
 }
+
+// ── Client Auth ───────────────────────────────────────────────────────────────
+
+export async function clientRegister(payload: { phone: string; password: string; firstName?: string; lastName?: string }) {
+  const res = await fetch(`${BASE}/clients/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error ?? 'Registration failed') }
+  return res.json()
+}
+
+export async function clientLogin(payload: { phone: string; password: string }) {
+  const res = await fetch(`${BASE}/clients/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error ?? 'Login failed') }
+  return res.json()
+}
+
+export async function fetchClientMe(token: string) {
+  const res = await fetch(`${BASE}/clients/me`, { headers: { Authorization: `Bearer ${token}` } })
+  if (!res.ok) throw new Error('Unauthorized')
+  return res.json()
+}
+
+export async function updateClientMe(token: string, data: { firstName?: string; lastName?: string }) {
+  const res = await fetch(`${BASE}/clients/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Update failed')
+  return res.json()
+}
+
+export async function fetchClientOrders(token: string) {
+  const res = await fetch(`${BASE}/clients/me/orders`, { headers: { Authorization: `Bearer ${token}` } })
+  if (!res.ok) throw new Error('Failed to fetch orders')
+  return res.json()
+}
+
+export async function fetchClientAddresses(token: string) {
+  const res = await fetch(`${BASE}/clients/me/addresses`, { headers: { Authorization: `Bearer ${token}` } })
+  if (!res.ok) throw new Error('Failed')
+  return res.json()
+}
+
+export async function addClientAddress(token: string, data: { label: 'home' | 'work' | 'other'; address: string }) {
+  const res = await fetch(`${BASE}/clients/me/addresses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Failed')
+  return res.json()
+}
+
+export async function deleteClientAddress(token: string, id: number) {
+  const res = await fetch(`${BASE}/clients/me/addresses/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Failed')
+  return res.json()
+}

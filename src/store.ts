@@ -48,3 +48,35 @@ export const useLangStore = create<LangStore>()(
     { name: 'resulberdy-lang' }
   )
 )
+
+// ── Auth store ────────────────────────────────────────────────────────────────
+
+interface ClientProfile {
+  id: number
+  phone: string
+  firstName: string | null
+  lastName: string | null
+  balance: string
+  createdAt: string
+}
+
+interface AuthStore {
+  token: string | null
+  client: ClientProfile | null
+  setAuth: (token: string, client: ClientProfile) => void
+  updateClient: (client: ClientProfile) => void
+  logout: () => void
+}
+
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set) => ({
+      token: null,
+      client: null,
+      setAuth: (token, client) => set({ token, client }),
+      updateClient: (client) => set({ client }),
+      logout: () => set({ token: null, client: null }),
+    }),
+    { name: 'resulberdy-auth' }
+  )
+)

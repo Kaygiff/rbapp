@@ -5,7 +5,7 @@ import BottomNav from './components/BottomNav'
 import MenuPage from './pages/MenuPage'
 import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
-import TrackingPage from './pages/TrackingPage'
+import ProfilePage from './pages/ProfilePage'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 2 } }
@@ -22,7 +22,7 @@ export default function App() {
               <Route path="/" element={<MenuPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/tracking" element={<TrackingPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </main>
           <BottomNav />
