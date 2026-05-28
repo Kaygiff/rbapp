@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ShoppingBag, Search, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { fetchMenu } from '../api'
 import type { Category, MenuItem, Lang } from '../types'
 import { useCartStore, useLangStore } from '../store'
