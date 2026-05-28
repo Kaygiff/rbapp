@@ -1,5 +1,3 @@
-import type { Lang } from './types'
-
 /**
  * Format a price string to a localized currency string.
  * Usage: formatPrice('12.50') → '12.50 TMT'

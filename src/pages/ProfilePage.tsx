@@ -14,7 +14,7 @@ import {
 } from '../api'
 import { useOrderTracking } from '../hooks/useOrderTracking'
 import { formatPrice } from '../utils'
-import type { Order, OrderStatus, Lang } from '../types'
+import type { Order, OrderStatus } from '../types'
 
 type Screen = 'main' | 'orders' | 'order-detail' | 'addresses' | 'add-address' | 'edit-profile'
 
