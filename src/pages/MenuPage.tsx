@@ -6,6 +6,7 @@ import type { Category, MenuItem, Lang } from '../types'
 import { useCartStore, useLangStore } from '../store'
 import { tr } from '../i18n'
 import { formatPrice } from '../utils'
+import { itemName, itemDesc, catName } from '../localizeMenu'
 
 export default function MenuPage() {
   const { lang } = useLangStore()
@@ -21,7 +22,7 @@ export default function MenuPage() {
     if (search.trim()) {
       const q = search.toLowerCase()
       cats = cats
-        .map(c => ({ ...c, items: c.items.filter(i => i.name.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q)) }))
+        .map(c => ({ ...c, items: c.items.filter(i => itemName(i, lang).toLowerCase().includes(q) || itemDesc(i, lang)?.toLowerCase().includes(q)) }))
         .filter(c => c.items.length > 0)
     }
     return cats
@@ -79,7 +80,7 @@ export default function MenuPage() {
             className={`cat-tab ${activeCategory === cat.id ? 'active' : ''}`}
             onClick={() => handleCategoryClick(cat.id)}
           >
-            {cat.name}
+            {catName(cat, lang)}
           </button>
         ))}
       </div>
@@ -97,7 +98,7 @@ export default function MenuPage() {
               className="cat-section"
               ref={el => { sectionRefs.current[cat.id] = el }}
             >
-              <h2 className="cat-title">{cat.name}</h2>
+              <h2 className="cat-title">{catName(cat, lang)}</h2>
               <div className="items-grid">
                 {cat.items.map(item => (
                   <MenuCard
@@ -129,7 +130,7 @@ function MenuCard({
         {item.imageUrl ? (
           <img
             src={item.imageUrl}
-            alt={item.name}
+            alt={itemName(item, lang)}
             className="card-img"
             loading="lazy"
             crossOrigin="anonymous"
@@ -146,8 +147,8 @@ function MenuCard({
         </div>
       </div>
       <div className="card-body">
-        <div className="card-name">{item.name}</div>
-        {item.description && <div className="card-desc">{item.description}</div>}
+        <div className="card-name">{itemName(item, lang)}</div>
+        {itemDesc(item, lang) && <div className="card-desc">{itemDesc(item, lang)}</div>}
         <div className="card-footer">
           <span className="card-price">{formatPrice(item.price)}</span>
           {item.available ? (
