@@ -7,12 +7,8 @@ import { useOrderTracking } from '../hooks/useOrderTracking'
 import { useLangStore } from '../store'
 import { tr } from '../i18n'
 import { formatPrice } from '../utils'
+import { STATUS_ORDER, STATUS_ICONS } from '../constants/orderStatus'
 import type { Order, OrderStatus } from '../types'
-
-const STATUS_ORDER: OrderStatus[] = ['NEW', 'CONFIRMED', 'COOKING', 'READY', 'DELIVERED']
-const STATUS_ICONS: Record<OrderStatus, string> = {
-  NEW: '📋', CONFIRMED: '✅', COOKING: '👨‍🍳', READY: '🔔', DELIVERED: '🎉', CANCELLED: '❌'
-}
 
 export default function TrackingPage() {
   const { lang } = useLangStore()

@@ -1,13 +1,13 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { UtensilsCrossed, ShoppingBag, User } from 'lucide-react'
-import { useCartStore, useLangStore, useAuthStore } from '../store'
+import { useCartStore, useLangStore, useAuthStore, selectTotalItems } from '../store'
 import { tr } from '../i18n'
 
 export default function BottomNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { lang } = useLangStore()
-  const totalItems = useCartStore(s => s.totalItems())
+  const totalItems = useCartStore(selectTotalItems)
   const isLoggedIn = useAuthStore(s => !!s.token)
 
   const tabs = [

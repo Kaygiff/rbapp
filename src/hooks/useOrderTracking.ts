@@ -90,6 +90,7 @@ export function useOrderTracking(orderId: number | null, initialOrder: Order | n
 
     return () => {
       mountedRef.current = false
+      reconnectDelay.current = 2000
       clearTimeout(reconnectTimer.current)
       clearInterval(pingIntervalRef.current)
       wsRef.current?.close()

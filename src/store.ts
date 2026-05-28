@@ -8,8 +8,6 @@ interface CartStore {
   removeItem: (menuItemId: number) => void
   updateQty: (menuItemId: number, qty: number) => void
   clearCart: () => void
-  totalItems: () => number
-  totalPrice: () => number
 }
 
 export const useCartStore = create<CartStore>()(
@@ -30,12 +28,17 @@ export const useCartStore = create<CartStore>()(
         set(s => ({ items: s.items.map(i => i.menuItem.id === id ? { ...i, quantity: qty } : i) }))
       },
       clearCart: () => set({ items: [] }),
-      totalItems: () => get().items.reduce((s, i) => s + i.quantity, 0),
-      totalPrice: () => get().items.reduce((s, i) => s + parseFloat(i.menuItem.price) * i.quantity, 0),
     }),
     { name: 'resulberdy-cart' }
   )
 )
+
+// Селекторы — правильный способ получения вычисляемых значений из Zustand
+export const selectTotalItems = (s: CartStore) =>
+  s.items.reduce((acc, i) => acc + i.quantity, 0)
+
+export const selectTotalPrice = (s: CartStore) =>
+  s.items.reduce((acc, i) => acc + parseFloat(i.menuItem.price) * i.quantity, 0)
 
 interface LangStore {
   lang: Lang

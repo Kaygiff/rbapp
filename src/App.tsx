@@ -5,7 +5,7 @@ import BottomNav from './components/BottomNav'
 import MenuPage from './pages/MenuPage'
 import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
-import ProfilePage from './pages/ProfilePage'
+import ProfilePage from './pages/profile'
 import TrackingPage from './pages/TrackingPage'
 
 const queryClient = new QueryClient({

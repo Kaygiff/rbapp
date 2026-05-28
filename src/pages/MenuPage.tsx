@@ -12,7 +12,7 @@ export default function MenuPage() {
   const { data, isLoading, isError, refetch } = useQuery<Category[]>({ queryKey: ['menu'], queryFn: fetchMenu })
   const [activeCategory, setActiveCategory] = useState<number | null>(null)
   const [search, setSearch] = useState('')
-  const { addItem, items: cartItems } = useCartStore()
+  const { addItem, updateQty, items: cartItems } = useCartStore()
   const sectionRefs = useRef<Record<number, HTMLElement | null>>({})
 
   const filtered = useMemo(() => {
@@ -105,6 +105,7 @@ export default function MenuPage() {
                     item={item}
                     qty={getCartQty(item.id)}
                     onAdd={() => addItem(item)}
+                    onDecrement={() => updateQty(item.id, getCartQty(item.id) - 1)}
                     lang={lang}
                   />
                 ))}
@@ -117,7 +118,11 @@ export default function MenuPage() {
   )
 }
 
-function MenuCard({ item, qty, onAdd, lang }: { item: MenuItem; qty: number; onAdd: () => void; lang: Lang }) {
+function MenuCard({
+  item, qty, onAdd, onDecrement, lang,
+}: {
+  item: MenuItem; qty: number; onAdd: () => void; onDecrement: () => void; lang: Lang
+}) {
   return (
     <div className={`menu-card ${!item.available ? 'unavailable' : ''}`}>
       <div className="card-img-wrap">
@@ -146,13 +151,17 @@ function MenuCard({ item, qty, onAdd, lang }: { item: MenuItem; qty: number; onA
         <div className="card-footer">
           <span className="card-price">{formatPrice(item.price)}</span>
           {item.available ? (
-            <button className={`card-add ${qty > 0 ? 'in-cart' : ''}`} onClick={onAdd}>
-              {qty > 0 ? (
-                <span className="qty-badge">{qty} <ShoppingBag size={12} /></span>
-              ) : (
+            qty > 0 ? (
+              <div className="card-qty-controls">
+                <button className="qty-btn" onClick={onDecrement}>−</button>
+                <span className="qty-num">{qty}</span>
+                <button className="qty-btn qty-btn--add" onClick={onAdd}>+</button>
+              </div>
+            ) : (
+              <button className="card-add" onClick={onAdd}>
                 <span>+</span>
-              )}
-            </button>
+              </button>
+            )
           ) : (
             <span className="unavailable-badge">{tr('unavailable', lang)}</span>
           )}

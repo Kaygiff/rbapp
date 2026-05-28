@@ -1,25 +1,34 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
-import { createOrder } from '../api'
-import { useCartStore, useLangStore } from '../store'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Loader2, MapPin } from 'lucide-react'
+import { createOrder, fetchClientAddresses } from '../api'
+import { useCartStore, useLangStore, useAuthStore, selectTotalPrice } from '../store'
 import { tr } from '../i18n'
 import { formatPrice, isValidPhone } from '../utils'
 
 export default function CheckoutPage() {
   const { lang } = useLangStore()
-  const { items, totalPrice, clearCart } = useCartStore()
+  const { items, clearCart } = useCartStore()
+  const total = useCartStore(selectTotalPrice)
+  const { client, token } = useAuthStore()
   const navigate = useNavigate()
 
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [name, setName] = useState(client?.firstName ? [client.firstName, client.lastName].filter(Boolean).join(' ') : '')
+  const [phone, setPhone] = useState(client?.phone ?? '')
   const [address, setAddress] = useState('')
   const [comment, setComment] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Guard against double-submit
   const submittingRef = useRef(false)
+
+  // Сохранённые адреса для авторизованных пользователей
+  const { data: savedAddresses } = useQuery<any[]>({
+    queryKey: ['client-addresses'],
+    queryFn: () => fetchClientAddresses(token!),
+    enabled: !!token,
+  })
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -88,9 +97,24 @@ export default function CheckoutPage() {
           {errors.phone && <span className="field-error">{errors.phone}</span>}
         </div>
 
-        {/* Address */}
+        {/* Address — с выбором из сохранённых */}
         <div className="form-group">
           <label className="form-label">{tr('address', lang)}</label>
+          {savedAddresses && savedAddresses.length > 0 && (
+            <div className="saved-addresses">
+              {savedAddresses.map(a => (
+                <button
+                  key={a.id}
+                  type="button"
+                  className={`saved-address-btn ${address === a.address ? 'active' : ''}`}
+                  onClick={() => setAddress(a.address)}
+                >
+                  <MapPin size={12} />
+                  <span>{a.address}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <input
             className={`form-input ${errors.address ? 'input-error' : ''}`}
             value={address}
@@ -122,7 +146,7 @@ export default function CheckoutPage() {
           ))}
           <div className="summary-total">
             <span>{tr('total', lang)}</span>
-            <span>{formatPrice(totalPrice())}</span>
+            <span>{formatPrice(total)}</span>
           </div>
         </div>
 

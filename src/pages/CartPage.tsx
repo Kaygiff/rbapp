@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { Trash2, ShoppingBag, Plus, Minus } from 'lucide-react'
-import { useCartStore, useLangStore } from '../store'
+import { useCartStore, useLangStore, selectTotalPrice } from '../store'
 import { tr } from '../i18n'
 import { formatPrice } from '../utils'
 
 export default function CartPage() {
   const { lang } = useLangStore()
-  const { items, removeItem, updateQty, clearCart, totalPrice } = useCartStore()
+  const { items, removeItem, updateQty, clearCart } = useCartStore()
+  const total = useCartStore(selectTotalPrice)
   const navigate = useNavigate()
 
   if (items.length === 0) return (
@@ -49,7 +50,7 @@ export default function CartPage() {
       <div className="cart-footer">
         <div className="total-row">
           <span className="total-label">{tr('total', lang)}</span>
-          <span className="total-amount">{formatPrice(totalPrice())}</span>
+          <span className="total-amount">{formatPrice(total)}</span>
         </div>
         <button className="btn-primary btn-lg" onClick={() => navigate('/checkout')}>
           {tr('checkout', lang)}
