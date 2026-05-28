@@ -232,13 +232,32 @@ a { color: inherit; text-decoration: none; }
   background: linear-gradient(to right, var(--gold-dim), transparent);
 }
 
+/* ── Horizontal scroll row ─────────────────────────────────────────────── */
 .items-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: row;
   gap: 12px;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 8px;
+  /* pull to page edges so cards bleed to the side */
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  /* momentum scroll on iOS */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  /* hide scrollbar but keep functionality */
+  scrollbar-width: none;
 }
+.items-grid::-webkit-scrollbar { display: none; }
 
 .menu-card {
+  /* fixed card size so they don't shrink */
+  flex: 0 0 155px;
+  width: 155px;
+  scroll-snap-align: start;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -252,10 +271,12 @@ a { color: inherit; text-decoration: none; }
 .menu-card.unavailable { opacity: 0.45; }
 
 .card-img-wrap {
-  aspect-ratio: 1/1;
+  width: 100%;
+  height: 130px;
   overflow: hidden;
   background: var(--surface2);
   position: relative;
+  flex-shrink: 0;
 }
 .card-img {
   width: 100%;
@@ -291,7 +312,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 6px; }
-.card-price { font-size: 0.92rem; font-weight: 700; color: var(--gold-soft); }
+.card-price { font-size: 0.88rem; font-weight: 700; color: var(--gold-soft); }
 
 .card-add {
   width: 32px;
