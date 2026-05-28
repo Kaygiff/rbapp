@@ -4,9 +4,13 @@ export const WS_BASE = BASE.replace('https://', 'wss://').replace('http://', 'ws
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
 async function apiFetch(path: string, options?: RequestInit) {
+  const isBodyRequest = options?.method && options.method !== 'GET'
   const res = await fetch(`${BASE}${path}`, {
     ...options,
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    headers: {
+      ...(isBodyRequest ? { 'Content-Type': 'application/json' } : {}),
+      ...options?.headers,
+    },
   })
   return res
 }
@@ -14,7 +18,10 @@ async function apiFetch(path: string, options?: RequestInit) {
 async function authFetch(token: string, path: string, options?: RequestInit) {
   return apiFetch(path, {
     ...options,
-    headers: { Authorization: `Bearer ${token}`, ...options?.headers },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...options?.headers,
+    },
   })
 }
 
