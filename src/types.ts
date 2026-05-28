@@ -5,6 +5,8 @@ export type Lang = 'ru' | 'tk' | 'en'
 export interface Category {
   id: number
   name: string
+  nameTk?: string | null
+  nameEn?: string | null
   slug: string
   order: number
   items: MenuItem[]
@@ -14,7 +16,12 @@ export interface MenuItem {
   id: number
   categoryId: number | null
   name: string
+  nameRu?: string | null
+  nameTk?: string | null
+  nameEn?: string | null
   description: string | null
+  descriptionTk?: string | null
+  descriptionEn?: string | null
   price: string
   imageUrl: string | null
   available: boolean
