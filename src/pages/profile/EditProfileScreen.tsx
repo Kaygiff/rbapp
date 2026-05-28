@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, Loader2 } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { useAuthStore, useLangStore } from '../../store'
 import { updateClientMe } from '../../api'
