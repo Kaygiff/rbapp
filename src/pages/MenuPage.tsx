@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ShoppingBag, Search, X } from 'lucide-react'
 import { fetchMenu } from '../api'
-import type { Category, MenuItem } from '../types'
-import { useCartStore } from '../store'
-import { useLangStore } from '../store'
+import type { Category, MenuItem, Lang } from '../types'
+import { useCartStore, useLangStore } from '../store'
 import { tr } from '../i18n'
+import { formatPrice } from '../utils'
 
 export default function MenuPage() {
   const { lang } = useLangStore()
@@ -13,18 +13,30 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<number | null>(null)
   const [search, setSearch] = useState('')
   const { addItem, items: cartItems } = useCartStore()
+  const sectionRefs = useRef<Record<number, HTMLElement | null>>({})
 
   const filtered = useMemo(() => {
     if (!data) return []
     let cats = activeCategory ? data.filter(c => c.id === activeCategory) : data
     if (search.trim()) {
       const q = search.toLowerCase()
-      cats = cats.map(c => ({ ...c, items: c.items.filter(i => i.name.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q)) })).filter(c => c.items.length > 0)
+      cats = cats
+        .map(c => ({ ...c, items: c.items.filter(i => i.name.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q)) }))
+        .filter(c => c.items.length > 0)
     }
     return cats
   }, [data, activeCategory, search])
 
   const getCartQty = (id: number) => cartItems.find(i => i.menuItem.id === id)?.quantity ?? 0
+
+  function handleCategoryClick(id: number | null) {
+    setActiveCategory(id)
+    if (id !== null && sectionRefs.current[id]) {
+      sectionRefs.current[id]!.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
   if (isLoading) return (
     <div className="flex-center full-height">
@@ -57,7 +69,7 @@ export default function MenuPage() {
       <div className="cat-tabs">
         <button
           className={`cat-tab ${activeCategory === null ? 'active' : ''}`}
-          onClick={() => setActiveCategory(null)}
+          onClick={() => handleCategoryClick(null)}
         >
           {tr('allCategories', lang)}
         </button>
@@ -65,7 +77,7 @@ export default function MenuPage() {
           <button
             key={cat.id}
             className={`cat-tab ${activeCategory === cat.id ? 'active' : ''}`}
-            onClick={() => setActiveCategory(cat.id)}
+            onClick={() => handleCategoryClick(cat.id)}
           >
             {cat.name}
           </button>
@@ -74,27 +86,38 @@ export default function MenuPage() {
 
       {/* Menu items */}
       <div className="menu-content">
-        {filtered.map(cat => (
-          <section key={cat.id} className="cat-section">
-            <h2 className="cat-title">{cat.name}</h2>
-            <div className="items-grid">
-              {cat.items.map(item => (
-                <MenuCard key={item.id} item={item} qty={getCartQty(item.id)} onAdd={() => addItem(item)} lang={lang} />
-              ))}
-            </div>
-          </section>
-        ))}
-        {filtered.every(c => c.items.length === 0) && (
+        {filtered.length === 0 ? (
           <div className="flex-center" style={{ paddingTop: '3rem' }}>
             <p className="text-muted">—</p>
           </div>
+        ) : (
+          filtered.map(cat => (
+            <section
+              key={cat.id}
+              className="cat-section"
+              ref={el => { sectionRefs.current[cat.id] = el }}
+            >
+              <h2 className="cat-title">{cat.name}</h2>
+              <div className="items-grid">
+                {cat.items.map(item => (
+                  <MenuCard
+                    key={item.id}
+                    item={item}
+                    qty={getCartQty(item.id)}
+                    onAdd={() => addItem(item)}
+                    lang={lang}
+                  />
+                ))}
+              </div>
+            </section>
+          ))
         )}
       </div>
     </div>
   )
 }
 
-function MenuCard({ item, qty, onAdd, lang }: { item: MenuItem; qty: number; onAdd: () => void; lang: any }) {
+function MenuCard({ item, qty, onAdd, lang }: { item: MenuItem; qty: number; onAdd: () => void; lang: Lang }) {
   return (
     <div className={`menu-card ${!item.available ? 'unavailable' : ''}`}>
       <div className="card-img-wrap">
@@ -121,7 +144,7 @@ function MenuCard({ item, qty, onAdd, lang }: { item: MenuItem; qty: number; onA
         <div className="card-name">{item.name}</div>
         {item.description && <div className="card-desc">{item.description}</div>}
         <div className="card-footer">
-          <span className="card-price">{parseFloat(item.price).toLocaleString()} TMT</span>
+          <span className="card-price">{formatPrice(item.price)}</span>
           {item.available ? (
             <button className={`card-add ${qty > 0 ? 'in-cart' : ''}`} onClick={onAdd}>
               {qty > 0 ? (

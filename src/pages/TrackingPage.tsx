@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Wifi, WifiOff, Loader2 } from 'lucide-react'
 import { fetchOrder } from '../api'
 import { useOrderTracking } from '../hooks/useOrderTracking'
 import { useLangStore } from '../store'
 import { tr } from '../i18n'
+import { formatPrice } from '../utils'
 import type { Order, OrderStatus } from '../types'
 
 const STATUS_ORDER: OrderStatus[] = ['NEW', 'CONFIRMED', 'COOKING', 'READY', 'DELIVERED']
@@ -15,12 +16,11 @@ const STATUS_ICONS: Record<OrderStatus, string> = {
 
 export default function TrackingPage() {
   const { lang } = useLangStore()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [inputId, setInputId] = useState(searchParams.get('id') ?? '')
-  const [activeId, setActiveId] = useState<number | null>(() => {
-    const id = searchParams.get('id')
-    return id ? Number(id) : null
-  })
+  const { id: routeId } = useParams<{ id?: string }>()
+  const navigate = useNavigate()
+
+  const [inputId, setInputId] = useState(routeId ?? '')
+  const [activeId, setActiveId] = useState<number | null>(() => routeId ? Number(routeId) : null)
 
   const { data: initialOrder, isLoading, isError } = useQuery<Order>({
     queryKey: ['order', activeId],
@@ -35,11 +35,11 @@ export default function TrackingPage() {
     const id = Number(inputId)
     if (!id) return
     setActiveId(id)
-    setSearchParams({ id: String(id) })
+    navigate(`/tracking/${id}`, { replace: true })
   }
 
   const isCancelled = order?.status === 'CANCELLED'
-  const currentIdx = order ? STATUS_ORDER.indexOf(order.status as any) : -1
+  const currentIdx = order ? STATUS_ORDER.indexOf(order.status as OrderStatus) : -1
 
   return (
     <div className="page">
@@ -70,7 +70,6 @@ export default function TrackingPage() {
 
       {order && (
         <div className="tracking-card">
-          {/* Header */}
           <div className="tracking-header">
             <div>
               <div className="tracking-order-num">{tr('yourOrder', lang)} #{order.id}</div>
@@ -79,12 +78,15 @@ export default function TrackingPage() {
               </div>
             </div>
             <div className={`ws-badge ws-${wsStatus}`}>
-              {wsStatus === 'connected' ? <Wifi size={12} /> : wsStatus === 'connecting' ? <Loader2 size={12} className="spin" /> : <WifiOff size={12} />}
+              {wsStatus === 'connected'
+                ? <Wifi size={12} />
+                : wsStatus === 'connecting'
+                  ? <Loader2 size={12} className="spin" />
+                  : <WifiOff size={12} />}
               <span>{tr(wsStatus === 'connected' ? 'connected' : wsStatus === 'connecting' ? 'connecting' : 'disconnected', lang)}</span>
             </div>
           </div>
 
-          {/* Status stepper */}
           {isCancelled ? (
             <div className="cancelled-badge">
               {STATUS_ICONS.CANCELLED} {tr('statusCANCELLED', lang)}
@@ -103,18 +105,17 @@ export default function TrackingPage() {
             </div>
           )}
 
-          {/* Items */}
           <div className="tracking-items">
             <div className="tracking-items-title">{tr('orderItems', lang)}</div>
             {order.items.map(item => (
               <div key={item.id} className="summary-row">
                 <span>{item.name} × {item.quantity}</span>
-                <span>{(parseFloat(item.price) * item.quantity).toLocaleString()} TMT</span>
+                <span>{formatPrice(parseFloat(item.price) * item.quantity)}</span>
               </div>
             ))}
             <div className="summary-total">
               <span>{tr('total', lang)}</span>
-              <span>{parseFloat(order.total).toLocaleString()} TMT</span>
+              <span>{formatPrice(order.total)}</span>
             </div>
           </div>
 

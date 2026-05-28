@@ -1,5 +1,5 @@
 export type OrderStatus = 'NEW' | 'CONFIRMED' | 'COOKING' | 'READY' | 'DELIVERED' | 'CANCELLED'
-export type OrderType = 'DINE_IN' | 'DELIVERY'
+export type OrderType = 'DELIVERY'
 export type Lang = 'ru' | 'tk' | 'en'
 
 export interface Category {

@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom'
 import { Trash2, ShoppingBag, Plus, Minus } from 'lucide-react'
 import { useCartStore, useLangStore } from '../store'
 import { tr } from '../i18n'
+import { formatPrice } from '../utils'
 
 export default function CartPage() {
   const { lang } = useLangStore()
-  const { items, removeItem, updateQty, totalPrice } = useCartStore()
+  const { items, removeItem, updateQty, clearCart, totalPrice } = useCartStore()
   const navigate = useNavigate()
 
   if (items.length === 0) return (
@@ -27,7 +28,7 @@ export default function CartPage() {
             )}
             <div className="cart-item-body">
               <div className="cart-item-name">{menuItem.name}</div>
-              <div className="cart-item-price">{(parseFloat(menuItem.price) * quantity).toLocaleString()} TMT</div>
+              <div className="cart-item-price">{formatPrice(parseFloat(menuItem.price) * quantity)}</div>
             </div>
             <div className="qty-controls">
               <button className="qty-btn" onClick={() => updateQty(menuItem.id, quantity - 1)}>
@@ -48,10 +49,13 @@ export default function CartPage() {
       <div className="cart-footer">
         <div className="total-row">
           <span className="total-label">{tr('total', lang)}</span>
-          <span className="total-amount">{totalPrice().toLocaleString()} TMT</span>
+          <span className="total-amount">{formatPrice(totalPrice())}</span>
         </div>
         <button className="btn-primary btn-lg" onClick={() => navigate('/checkout')}>
           {tr('checkout', lang)}
+        </button>
+        <button className="btn-ghost btn-sm" onClick={clearCart} style={{ marginTop: '8px' }}>
+          <Trash2 size={14} /> {tr('clearCart', lang)}
         </button>
       </div>
     </div>

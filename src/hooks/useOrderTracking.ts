@@ -11,6 +11,7 @@ export function useOrderTracking(orderId: number | null, initialOrder: Order | n
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const reconnectDelay = useRef(2000)
   const mountedRef = useRef(true)
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
 
   useEffect(() => { setOrder(initialOrder) }, [initialOrder])
 
@@ -20,9 +21,13 @@ export function useOrderTracking(orderId: number | null, initialOrder: Order | n
 
     function connect() {
       if (!mountedRef.current) return
+
+      // Close existing connection
       if (wsRef.current && wsRef.current.readyState < 2) {
         wsRef.current.close()
       }
+      // Clear any existing ping interval
+      clearInterval(pingIntervalRef.current)
 
       setWsStatus('connecting')
       let ws: WebSocket
@@ -34,16 +39,16 @@ export function useOrderTracking(orderId: number | null, initialOrder: Order | n
       }
       wsRef.current = ws
 
-      const pingInterval = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
-          try { ws.send('ping') } catch {}
-        }
-      }, 25000)
-
       ws.onopen = () => {
-        if (!mountedRef.current) return ws.close()
+        if (!mountedRef.current) { ws.close(); return }
         reconnectDelay.current = 2000
         setWsStatus('connected')
+        // Start ping only after connection is open
+        pingIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            try { ws.send('ping') } catch {}
+          }
+        }, 25000)
       }
 
       ws.onmessage = (e) => {
@@ -61,14 +66,14 @@ export function useOrderTracking(orderId: number | null, initialOrder: Order | n
       }
 
       ws.onclose = () => {
-        clearInterval(pingInterval)
+        clearInterval(pingIntervalRef.current)
         if (!mountedRef.current) return
         setWsStatus('disconnected')
         scheduleReconnect()
       }
 
       ws.onerror = () => {
-        clearInterval(pingInterval)
+        clearInterval(pingIntervalRef.current)
         ws.close()
       }
     }
@@ -86,6 +91,7 @@ export function useOrderTracking(orderId: number | null, initialOrder: Order | n
     return () => {
       mountedRef.current = false
       clearTimeout(reconnectTimer.current)
+      clearInterval(pingIntervalRef.current)
       wsRef.current?.close()
     }
   }, [orderId])

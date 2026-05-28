@@ -14,11 +14,10 @@ export async function fetchOrder(id: number) {
 }
 
 export interface CreateOrderPayload {
-  type: 'DINE_IN' | 'DELIVERY'
+  type: 'DELIVERY'
   customerName: string
   customerPhone: string
-  address?: string
-  tableNumber?: string
+  address: string
   comment?: string
   items: { menuItemId: number; quantity: number }[]
 }
@@ -31,7 +30,7 @@ export async function createOrder(payload: CreateOrderPayload) {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err.error ?? 'Failed to create order')
+    throw new Error((err as any).error ?? 'Failed to create order')
   }
   return res.json()
 }
@@ -44,7 +43,7 @@ export async function clientRegister(payload: { phone: string; password: string;
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error ?? 'Registration failed') }
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e as any).error ?? 'Registration failed') }
   return res.json()
 }
 
@@ -54,7 +53,7 @@ export async function clientLogin(payload: { phone: string; password: string }) 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error ?? 'Login failed') }
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e as any).error ?? 'Login failed') }
   return res.json()
 }
 
@@ -76,13 +75,13 @@ export async function updateClientMe(token: string, data: { firstName?: string; 
 
 export async function fetchClientOrders(token: string) {
   const res = await fetch(`${BASE}/clients/me/orders`, { headers: { Authorization: `Bearer ${token}` } })
-  if (!res.ok) throw new Error('Failed to fetch orders')
+  if (!res.ok) throw new Error('Unauthorized')
   return res.json()
 }
 
 export async function fetchClientAddresses(token: string) {
   const res = await fetch(`${BASE}/clients/me/addresses`, { headers: { Authorization: `Bearer ${token}` } })
-  if (!res.ok) throw new Error('Failed')
+  if (!res.ok) throw new Error('Unauthorized')
   return res.json()
 }
 

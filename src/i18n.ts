@@ -1,8 +1,6 @@
 import type { Lang } from './types'
 
-type Translations = Record<string, Record<Lang, string>>
-
-export const t: Translations = {
+const translations = {
   // Nav
   menu: { ru: 'Меню', tk: 'Menýu', en: 'Menu' },
   cart: { ru: 'Корзина', tk: 'Sebet', en: 'Cart' },
@@ -21,19 +19,17 @@ export const t: Translations = {
   total: { ru: 'Итого', tk: 'Jemi', en: 'Total' },
   checkout: { ru: 'Оформить заказ', tk: 'Sargyt et', en: 'Place order' },
   remove: { ru: 'Удалить', tk: 'Aýyr', en: 'Remove' },
+  clearCart: { ru: 'Очистить корзину', tk: 'Sebedi arassala', en: 'Clear cart' },
 
   // Checkout
-  orderType: { ru: 'Тип заказа', tk: 'Sargyt görnüşi', en: 'Order type' },
-  dineIn: { ru: 'В зале', tk: 'Zalda', en: 'Dine in' },
-  delivery: { ru: 'Доставка', tk: 'Eltip bermek', en: 'Delivery' },
   yourName: { ru: 'Ваше имя', tk: 'Adyňyz', en: 'Your name' },
   yourPhone: { ru: 'Телефон', tk: 'Telefon', en: 'Phone' },
-  tableNumber: { ru: 'Номер стола', tk: 'Stol belgisi', en: 'Table number' },
   address: { ru: 'Адрес доставки', tk: 'Eltip beriş salgysy', en: 'Delivery address' },
   comment: { ru: 'Комментарий', tk: 'Bellik', en: 'Comment' },
   commentPlaceholder: { ru: 'Пожелания, аллергии...', tk: 'Islegler, allergýa...', en: 'Wishes, allergies...' },
   placeOrder: { ru: 'Сделать заказ', tk: 'Sargyt ber', en: 'Place order' },
   required: { ru: 'Обязательное поле', tk: 'Hökman dolduryň', en: 'Required field' },
+  invalidPhone: { ru: 'Неверный формат телефона', tk: 'Nädogry telefon formaty', en: 'Invalid phone format' },
   orderPlaced: { ru: 'Заказ принят!', tk: 'Sargyt kabul edildi!', en: 'Order placed!' },
   orderNumber: { ru: 'Номер заказа', tk: 'Sargyt belgisi', en: 'Order number' },
   trackOrder: { ru: 'Отслеживать заказ', tk: 'Sargyt yzarla', en: 'Track order' },
@@ -59,19 +55,13 @@ export const t: Translations = {
   loading: { ru: 'Загрузка...', tk: 'Ýüklenýär...', en: 'Loading...' },
   error: { ru: 'Ошибка загрузки', tk: 'Ýükleme ýalňyşlygy', en: 'Loading error' },
   retry: { ru: 'Попробовать снова', tk: 'Täzeden synanyş', en: 'Retry' },
-  manTenge: { ru: 'TMT', tk: 'TMT', en: 'TMT' },
-  items: { ru: 'позиций', tk: 'haryt', en: 'items' },
   connecting: { ru: 'Подключение...', tk: 'Birikýär...', en: 'Connecting...' },
   connected: { ru: 'Онлайн', tk: 'Onlaýn', en: 'Online' },
   disconnected: { ru: 'Офлайн', tk: 'Oflaýn', en: 'Offline' },
-}
+  notFound: { ru: 'Страница не найдена', tk: 'Sahypa tapylmady', en: 'Page not found' },
+  goHome: { ru: 'На главную', tk: 'Baş sahypa', en: 'Go home' },
 
-export function tr(key: string, lang: Lang): string {
-  return t[key]?.[lang] ?? key
-}
-
-// Auth & Profile additions
-const extra: Translations = {
+  // Auth & Profile
   login: { ru: 'Войти', tk: 'Gir', en: 'Login' },
   register: { ru: 'Регистрация', tk: 'Hasap aç', en: 'Register' },
   profile: { ru: 'Профиль', tk: 'Profil', en: 'Profile' },
@@ -94,6 +84,10 @@ const extra: Translations = {
   label_home: { ru: 'Дом', tk: 'Öý', en: 'Home' },
   label_work: { ru: 'Работа', tk: 'Iş', en: 'Work' },
   label_other: { ru: 'Другое', tk: 'Başga', en: 'Other' },
-}
+} as const
 
-Object.assign(t, extra)
+export type TranslationKey = keyof typeof translations
+
+export function tr(key: TranslationKey | string, lang: Lang): string {
+  return (translations as Record<string, Record<Lang, string>>)[key]?.[lang] ?? key
+}

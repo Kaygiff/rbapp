@@ -13,15 +13,13 @@ import {
   addClientAddress, deleteClientAddress, updateClientMe
 } from '../api'
 import { useOrderTracking } from '../hooks/useOrderTracking'
-import type { Order } from '../types'
+import { formatPrice } from '../utils'
+import type { Order, OrderStatus, Lang } from '../types'
 
 type Screen = 'main' | 'orders' | 'order-detail' | 'addresses' | 'add-address' | 'edit-profile'
 
-// ── Label icons ───────────────────────────────────────────────────────────────
 const LABEL_ICONS = { home: Home, work: Briefcase, other: MoreHorizontal }
 const LABEL_COLORS = { home: '#c9952a', work: '#4a9eca', other: '#9a8f7e' }
-
-// ── Status colors ─────────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, string> = {
   NEW: '#9a8f7e', CONFIRMED: '#4a9eca', COOKING: '#e6a817',
   READY: '#27ae60', DELIVERED: '#27ae60', CANCELLED: '#c0392b'
@@ -29,13 +27,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function ProfilePage() {
   const { token, client } = useAuthStore()
-
   if (!token || !client) return <AuthScreen />
   return <ProfileScreen />
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// AUTH SCREEN
+// AUTH
 // ══════════════════════════════════════════════════════════════════════════════
 
 function AuthScreen() {
@@ -66,17 +63,10 @@ function AuthScreen() {
     return Object.keys(e).length === 0
   }
 
-  function submit() {
-    if (!validate()) return
-    mutation.mutate()
-  }
-
   return (
     <div className="page">
       <div className="auth-card">
-        <div className="auth-logo">
-          <User size={40} strokeWidth={1} />
-        </div>
+        <div className="auth-logo"><User size={40} strokeWidth={1} /></div>
         <h2 className="auth-title">
           {mode === 'login' ? tr('login', lang) : tr('register', lang)}
         </h2>
@@ -121,7 +111,7 @@ function AuthScreen() {
               className={`form-input ${errors.phone ? 'input-error' : ''}`}
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              placeholder="+993 ..."
+              placeholder="+993 61 00 00 00"
               type="tel"
             />
             {errors.phone && <span className="field-error">{tr('required', lang)}</span>}
@@ -148,8 +138,10 @@ function AuthScreen() {
             <p className="field-error text-center">{(mutation.error as Error).message}</p>
           )}
 
-          <button className="btn-primary btn-lg" onClick={submit} disabled={mutation.isPending}>
-            {mutation.isPending ? <Loader2 size={18} className="spin" /> : (mode === 'login' ? tr('login', lang) : tr('register', lang))}
+          <button className="btn-primary btn-lg" onClick={() => { if (validate()) mutation.mutate() }} disabled={mutation.isPending}>
+            {mutation.isPending
+              ? <Loader2 size={18} className="spin" />
+              : mode === 'login' ? tr('login', lang) : tr('register', lang)}
           </button>
         </div>
       </div>
@@ -158,18 +150,24 @@ function AuthScreen() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PROFILE SCREEN (router)
+// PROFILE ROUTER
 // ══════════════════════════════════════════════════════════════════════════════
 
 function ProfileScreen() {
   const [screen, setScreen] = useState<Screen>('main')
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null)
 
-  if (screen === 'orders') return <OrdersScreen onBack={() => setScreen('main')} onSelect={id => { setSelectedOrderId(id); setScreen('order-detail') }} />
-  if (screen === 'order-detail' && selectedOrderId) return <OrderDetailScreen orderId={selectedOrderId} onBack={() => setScreen('orders')} />
+  if (screen === 'orders') return (
+    <OrdersScreen
+      onBack={() => setScreen('main')}
+      onSelect={id => { setSelectedOrderId(id); setScreen('order-detail') }}
+    />
+  )
+  if (screen === 'order-detail' && selectedOrderId) return (
+    <OrderDetailScreen orderId={selectedOrderId} onBack={() => setScreen('orders')} />
+  )
   if (screen === 'addresses') return <AddressesScreen onBack={() => setScreen('main')} />
   if (screen === 'edit-profile') return <EditProfileScreen onBack={() => setScreen('main')} />
-
   return <MainProfile onNavigate={setScreen} />
 }
 
@@ -180,12 +178,10 @@ function ProfileScreen() {
 function MainProfile({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   const { lang, setLang } = useLangStore()
   const { client, logout } = useAuthStore()
-
   const fullName = [client?.firstName, client?.lastName].filter(Boolean).join(' ') || '—'
 
   return (
     <div className="page">
-      {/* Header card */}
       <div className="profile-hero" onClick={() => onNavigate('edit-profile')}>
         <div className="profile-avatar">
           {client?.firstName?.[0]?.toUpperCase() ?? <User size={28} />}
@@ -197,19 +193,15 @@ function MainProfile({ onNavigate }: { onNavigate: (s: Screen) => void }) {
         <ChevronRight size={18} className="text-muted" />
       </div>
 
-      {/* Balance */}
       <div className="balance-card">
         <div className="balance-label">
           <Wallet size={16} />
           <span>{tr('balance', lang)}</span>
         </div>
-        <div className="balance-amount">
-          {parseFloat(client?.balance ?? '0').toLocaleString()} TMT
-        </div>
+        <div className="balance-amount">{formatPrice(client?.balance ?? '0')}</div>
         <div className="balance-sub">{tr('balanceSub', lang)}</div>
       </div>
 
-      {/* Menu sections */}
       <div className="profile-sections">
         <div className="profile-section">
           <ProfileRow icon={Package} label={tr('myOrders', lang)} onClick={() => onNavigate('orders')} />
@@ -250,7 +242,7 @@ function MainProfile({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   )
 }
 
-function ProfileRow({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) {
+function ProfileRow({ icon: Icon, label, onClick }: { icon: React.ComponentType<{ size: number }>; label: string; onClick: () => void }) {
   return (
     <button className="profile-row" onClick={onClick}>
       <div className="profile-row-left">
@@ -268,7 +260,7 @@ function ProfileRow({ icon: Icon, label, onClick }: { icon: any; label: string; 
 
 function EditProfileScreen({ onBack }: { onBack: () => void }) {
   const { lang } = useLangStore()
-  const { token, client, updateClient } = useAuthStore()
+  const { token, client, updateClient, logout } = useAuthStore()
   const [firstName, setFirstName] = useState(client?.firstName ?? '')
   const [lastName, setLastName] = useState(client?.lastName ?? '')
   const [saved, setSaved] = useState(false)
@@ -276,6 +268,9 @@ function EditProfileScreen({ onBack }: { onBack: () => void }) {
   const mutation = useMutation({
     mutationFn: () => updateClientMe(token!, { firstName, lastName }),
     onSuccess: (data) => { updateClient(data); setSaved(true); setTimeout(() => setSaved(false), 2000) },
+    onError: (err) => {
+      if ((err as Error).message === 'Unauthorized') logout()
+    },
   })
 
   return (
@@ -309,18 +304,29 @@ function EditProfileScreen({ onBack }: { onBack: () => void }) {
 
 function OrdersScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id: number) => void }) {
   const { lang } = useLangStore()
-  const { token } = useAuthStore()
-  const { data: orders, isLoading } = useQuery<Order[]>({
+  const { token, logout } = useAuthStore()
+
+  const { data: orders, isLoading, isError, error } = useQuery<Order[]>({
     queryKey: ['client-orders'],
     queryFn: () => fetchClientOrders(token!),
   })
+
+  // Auto-logout on expired token
+  if (isError && (error as Error).message === 'Unauthorized') {
+    logout()
+    return null
+  }
 
   return (
     <div className="page">
       <button className="back-btn" onClick={onBack}><ChevronLeft size={18} /> {tr('profile', lang)}</button>
       <h2 className="section-title">{tr('myOrders', lang)}</h2>
 
-      {isLoading && <div className="flex-center" style={{ paddingTop: '3rem' }}><Loader2 size={28} className="spin" /></div>}
+      {isLoading && (
+        <div className="flex-center" style={{ paddingTop: '3rem' }}>
+          <Loader2 size={28} className="spin" />
+        </div>
+      )}
 
       {!isLoading && orders?.length === 0 && (
         <div className="flex-center flex-col gap-4" style={{ paddingTop: '3rem' }}>
@@ -343,7 +349,7 @@ function OrdersScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id:
               {order.items.length > 2 && ` +${order.items.length - 2}`}
             </div>
             <div className="order-card-footer">
-              <span className="order-card-total">{parseFloat(order.total).toLocaleString()} TMT</span>
+              <span className="order-card-total">{formatPrice(order.total)}</span>
               <span className="order-card-date">{new Date(order.createdAt).toLocaleDateString()}</span>
             </div>
           </button>
@@ -354,23 +360,22 @@ function OrdersScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id:
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ORDER DETAIL + TRACKING
+// ORDER DETAIL + LIVE TRACKING
 // ══════════════════════════════════════════════════════════════════════════════
 
-const STATUS_ORDER = ['NEW', 'CONFIRMED', 'COOKING', 'READY', 'DELIVERED']
-const STATUS_ICONS: Record<string, string> = {
+const STATUS_ORDER: OrderStatus[] = ['NEW', 'CONFIRMED', 'COOKING', 'READY', 'DELIVERED']
+const STATUS_ICONS: Record<OrderStatus, string> = {
   NEW: '📋', CONFIRMED: '✅', COOKING: '👨‍🍳', READY: '🔔', DELIVERED: '🎉', CANCELLED: '❌'
 }
 
 function OrderDetailScreen({ orderId, onBack }: { orderId: number; onBack: () => void }) {
   const { lang } = useLangStore()
+
   const { data: initialOrder } = useQuery<Order>({
     queryKey: ['order', orderId],
-    queryFn: async () => {
-      const res = await fetch(`https://resulberdybackend-production.up.railway.app/orders/${orderId}`)
-      return res.json()
-    },
+    queryFn: () => fetchOrder(orderId),
   })
+
   const { order, wsStatus } = useOrderTracking(orderId, initialOrder ?? null)
 
   const isCancelled = order?.status === 'CANCELLED'
@@ -380,14 +385,20 @@ function OrderDetailScreen({ orderId, onBack }: { orderId: number; onBack: () =>
     <div className="page">
       <button className="back-btn" onClick={onBack}><ChevronLeft size={18} /> {tr('myOrders', lang)}</button>
 
-      {!order && <div className="flex-center" style={{ paddingTop: '3rem' }}><Loader2 size={28} className="spin" /></div>}
+      {!order && (
+        <div className="flex-center" style={{ paddingTop: '3rem' }}>
+          <Loader2 size={28} className="spin" />
+        </div>
+      )}
 
       {order && (
         <div className="tracking-card">
           <div className="tracking-header">
             <div>
               <div className="tracking-order-num">{tr('yourOrder', lang)} #{order.id}</div>
-              <div className="text-muted" style={{ fontSize: '0.8rem' }}>{new Date(order.createdAt).toLocaleString()}</div>
+              <div className="text-muted" style={{ fontSize: '0.8rem' }}>
+                {new Date(order.createdAt).toLocaleString()}
+              </div>
             </div>
             <div className={`ws-badge ws-${wsStatus}`}>
               {wsStatus === 'connected' ? '●' : wsStatus === 'connecting' ? <Loader2 size={10} className="spin" /> : '○'}
@@ -414,12 +425,12 @@ function OrderDetailScreen({ orderId, onBack }: { orderId: number; onBack: () =>
             {order.items.map(item => (
               <div key={item.id} className="summary-row">
                 <span>{item.name} × {item.quantity}</span>
-                <span>{(parseFloat(item.price) * item.quantity).toLocaleString()} TMT</span>
+                <span>{formatPrice(parseFloat(item.price) * item.quantity)}</span>
               </div>
             ))}
             <div className="summary-total">
               <span>{tr('total', lang)}</span>
-              <span>{parseFloat(order.total).toLocaleString()} TMT</span>
+              <span>{formatPrice(order.total)}</span>
             </div>
           </div>
 
@@ -453,7 +464,11 @@ function AddressesScreen({ onBack }: { onBack: () => void }) {
 
   const addMutation = useMutation({
     mutationFn: () => addClientAddress(token!, { label: newLabel, address: newAddr }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['client-addresses'] }); setShowAdd(false); setNewAddr('') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-addresses'] })
+      setShowAdd(false)
+      setNewAddr('')
+    },
   })
 
   const deleteMutation = useMutation({
@@ -475,8 +490,12 @@ function AddressesScreen({ onBack }: { onBack: () => void }) {
             {(['home', 'work', 'other'] as const).map(l => {
               const Icon = LABEL_ICONS[l]
               return (
-                <button key={l} className={`label-tab ${newLabel === l ? 'active' : ''}`} onClick={() => setNewLabel(l)}
-                  style={newLabel === l ? { borderColor: LABEL_COLORS[l], color: LABEL_COLORS[l] } : {}}>
+                <button
+                  key={l}
+                  className={`label-tab ${newLabel === l ? 'active' : ''}`}
+                  onClick={() => setNewLabel(l)}
+                  style={newLabel === l ? { borderColor: LABEL_COLORS[l], color: LABEL_COLORS[l] } : {}}
+                >
                   <Icon size={14} /> {tr(`label_${l}`, lang)}
                 </button>
               )
@@ -488,13 +507,22 @@ function AddressesScreen({ onBack }: { onBack: () => void }) {
             onChange={e => setNewAddr(e.target.value)}
             placeholder={tr('address', lang)}
           />
-          <button className="btn-primary" style={{ marginTop: '8px' }} onClick={() => addMutation.mutate()} disabled={!newAddr.trim() || addMutation.isPending}>
+          <button
+            className="btn-primary"
+            style={{ marginTop: '8px' }}
+            onClick={() => addMutation.mutate()}
+            disabled={!newAddr.trim() || addMutation.isPending}
+          >
             {addMutation.isPending ? tr('loading', lang) : tr('save', lang)}
           </button>
         </div>
       )}
 
-      {isLoading && <div className="flex-center" style={{ paddingTop: '2rem' }}><Loader2 size={24} className="spin" /></div>}
+      {isLoading && (
+        <div className="flex-center" style={{ paddingTop: '2rem' }}>
+          <Loader2 size={24} className="spin" />
+        </div>
+      )}
 
       <div className="address-list">
         {addresses?.map(addr => {
@@ -508,14 +536,24 @@ function AddressesScreen({ onBack }: { onBack: () => void }) {
                 <div className="address-label-text">{tr(`label_${addr.label}`, lang)}</div>
                 <div className="address-text">{addr.address}</div>
               </div>
-              <button className="remove-btn" onClick={() => deleteMutation.mutate(addr.id)}><Trash2 size={16} /></button>
+              <button className="remove-btn" onClick={() => deleteMutation.mutate(addr.id)}>
+                <Trash2 size={16} />
+              </button>
             </div>
           )
         })}
         {!isLoading && addresses?.length === 0 && (
-          <p className="text-muted" style={{ paddingTop: '1rem', textAlign: 'center' }}>{tr('noAddresses', lang)}</p>
+          <p className="text-muted" style={{ paddingTop: '1rem', textAlign: 'center' }}>
+            {tr('noAddresses', lang)}
+          </p>
         )}
       </div>
     </div>
   )
+}
+
+// missing import fix
+function fetchOrder(id: number) {
+  return fetch(`https://resulberdybackend-production.up.railway.app/orders/${id}`)
+    .then(r => { if (!r.ok) throw new Error('Not found'); return r.json() })
 }
