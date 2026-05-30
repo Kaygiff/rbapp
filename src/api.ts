@@ -48,10 +48,15 @@ export interface CreateOrderPayload {
   items: { menuItemId: number; quantity: number }[]
 }
 
-export async function createOrder(payload: CreateOrderPayload) {
+export async function createOrder(payload: CreateOrderPayload, token?: string) {
+  // Если пользователь авторизован — передаём токен, чтобы заказ привязался к аккаунту
+  const headers: Record<string, string> = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
   const res = await apiFetch('/orders', {
     method: 'POST',
     body: JSON.stringify(payload),
+    headers,
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
