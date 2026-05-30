@@ -32,14 +32,17 @@ export default function CheckoutPage() {
 
   const mutation = useMutation({
     mutationFn: () =>
-      createOrder({
-        type: 'DELIVERY',
-        customerName: name.trim(),
-        customerPhone: phone.trim(),
-        address: address.trim(),
-        comment: comment.trim() || undefined,
-        items: items.map(i => ({ menuItemId: i.menuItem.id, quantity: i.quantity })),
-      }),
+      createOrder(
+        {
+          type: 'DELIVERY',
+          customerName: name.trim(),
+          customerPhone: phone.trim(),
+          address: address.trim(),
+          comment: comment.trim() || undefined,
+          items: items.map(i => ({ menuItemId: i.menuItem.id, quantity: i.quantity })),
+        },
+        token ?? undefined, // ← передаём токен чтобы заказ привязался к клиенту
+      ),
     onSuccess: (data) => {
       clearCart()
       navigate(`/tracking/${data.id}`)
